@@ -1,0 +1,95 @@
+import React, { useState } from 'react';
+
+function App() {
+  const [prompt, setPrompt] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [loadingImage, setLoadingImage] = useState(false);
+  const [errorImage, setErrorImage] = useState('');
+
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loadingPhone, setLoadingPhone] = useState(false);
+
+  // Generate AI image
+  const generateImage = async () => {
+    setLoadingImage(true);
+    setErrorImage('');
+    setImageUrl('');
+
+    try {
+      const response = await fetch('http://localhost:5000/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setImageUrl(data.imageUrl);
+      } else {
+        setErrorImage(data.error || 'Error generating image');
+      }
+    } catch (err) {
+      setErrorImage('Network error');
+    }
+
+    setLoadingImage(false);
+  };
+
+  // Generate phone number
+  const generatePhoneNumber = async () => {
+    setLoadingPhone(true);
+    setPhoneNumber('');
+
+    try {
+      const response = await fetch('http://localhost:5000/generate-phone');
+      const data = await response.json();
+
+      if (response.ok) {
+        setPhoneNumber(data.phoneNumber);
+      } else {
+        setPhoneNumber('Error generating phone number');
+      }
+    } catch (err) {
+      setPhoneNumber('Network error');
+    }
+
+    setLoadingPhone(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
+      <h1>AI Image & Phone Number Generator</h1>
+
+      <section style={{ marginBottom: 40 }}>
+        <h2>Generate AI Image</h2>
+        <textarea
+          rows={4}
+          placeholder="Enter image description..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          style={{ width: '100%', padding: 10 }}
+        />
+        <button onClick={generateImage} disabled={loadingImage || !prompt.trim()}>
+          {loadingImage ? 'Generating...' : 'Generate Image'}
+        </button>
+        {errorImage && <p style={{ color: 'red' }}>{errorImage}</p>}
+        {imageUrl && (
+          <div style={{ marginTop: 20 }}>
+            <img src={imageUrl} alt="Generated" style={{ maxWidth: '100%' }} />
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2>Generate Random Phone Number</h2>
+        <button onClick={generatePhoneNumber} disabled={loadingPhone}>
+          {loadingPhone ? 'Generating...' : 'Generate Phone Number'}
+        </button>
+        {phoneNumber && <p style={{ marginTop: 10, fontSize: '1.2em' }}>{phoneNumber}</p>}
+      </section>
+    </div>
+  );
+}
+
+export default App;
